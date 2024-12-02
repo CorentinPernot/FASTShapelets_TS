@@ -1,0 +1,8 @@
+data/
+
+# Fichiers systèmes
+.DS_Store
+
+# Caches Python
+__pycache__/
+*.pyc
