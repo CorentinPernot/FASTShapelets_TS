@@ -32,7 +32,7 @@ def apply_mask(word, mask):
 
 
 
-def compute_collision_matrix(nb_iterations, dict_sax): 
+def compute_collision_matrix(nb_iterations, dict_sax):
     # pour éviter de calculer des distances sur des doublons
     mots = sorted(set(word for words in dict_sax.values() for word in words))
     nb_mots = len(mots)
@@ -74,7 +74,6 @@ def compute_collision_matrix(nb_iterations, dict_sax):
 
     return mots, matrice_collusion
 
-# mots, collision_matrix = compute_collision_matrix(10, dict_sax)
 
 def compute_distinguish_power(nb_iterations, collision_matrix, y):
     indices_class_1 = np.where(y == 1)[0]
@@ -95,9 +94,32 @@ def compute_distinguish_power(nb_iterations, collision_matrix, y):
 
     return distinguish_power
 
+def find_top_k(distinguish_power,mots,k=10):
+    indices_best = np.argsort(distinguish_power)[-k:][::-1]
+    return [mots[i] for i in indices_best]
 
-# index_best = np.argmax(distinguish_power)
-# mots[index_best]
+
+def SAX_to_TS(filtered_sax_results, filtered_all_subsequences):
+    sax_to_ts = {}
+    for i in range(len(filtered_sax_results)):
+        for j in range(len(filtered_sax_results[i])):
+            if filtered_sax_results[i][j] not in sax_to_ts.keys():
+                sax_to_ts[filtered_sax_results[i][j]] = [filtered_all_subsequences[i][j]]
+            else :
+                sax_to_ts[filtered_sax_results[i][j]].append(filtered_all_subsequences[i][j])
+    return sax_to_ts
 
 
+def remap_SAX_to_TS(sax_words, sax_to_ts):
+    #return [cand for cand in sax_to_ts[word] for word in sax_words]
+    return [ts for word in sax_words for ts in sax_to_ts[word]]
+
+
+
+# res = SAX_to_TS(filtered_sax_results, filtered_all_subsequences)
+# for key in res.keys():
+#     print(len(res[key]))
+
+# top_k = find_top_k(distinguish_power,mots,k=10)
+# len(remap_SAX_to_TS(top_k, res))
 
