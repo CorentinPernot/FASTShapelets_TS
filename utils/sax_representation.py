@@ -3,6 +3,8 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 
+### 1st method by using windows : we divide the signals into windows 
+
 def discretize(value, breakpoints):
     """Discrétiser une valeur en fonction des breakpoints (quantiles d'une distribution normale)."""
     for i, threshold in enumerate(breakpoints):
@@ -138,4 +140,24 @@ def plot_sax_with_breakpoints(signal, sax_words, windows, len_window, dim_window
             segment_end = start_segment + len(segment)
             segment_mean = np.mean(segment)
             plt.hlines(segment_mean, start_segment, segment_end, colors[i % len(colors)], linewidth=2)
-            start_segment =
+            start_segment = segment_end
+        
+        # annoter le mot SAX au centre de la fenêtre
+        window_center = start_idx + len_window//2
+        plt.text(window_center, max(signal) * 0.9, word, color='black', ha='center', fontsize=10)
+        plt.vlines(start_idx, ymin=min(signal), ymax=max(signal), color='gray', linestyle='--', alpha=0.3)    
+        
+    plt.title("Signal avec segments SAX, mots SAX et breakpoints")
+    plt.xlabel("Temps")
+    plt.ylabel("Valeur")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("figures/sax_rep.png")
+    plt.show()
+
+
+
+
+
+
+

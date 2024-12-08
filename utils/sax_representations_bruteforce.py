@@ -92,4 +92,8 @@ def filtered_sax_for_set_bf(X, subsequence_length, word_length, alphabet_size):
                 filtered_subsequence.append(all_subsequences[i][j])
         # ajouter le résultat filtré pour ce sax_result à la liste globale
         filtered_sax_results.append(filtered_sax_result)
-        filtered_all_subsequences.appen
+        filtered_all_subsequences.append(filtered_subsequence)
+
+    return filtered_sax_results, filtered_all_subsequences
+
+
