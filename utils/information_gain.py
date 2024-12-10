@@ -56,6 +56,17 @@ def calculate_entropy(labels):
 
 
 def information_gain(cand, X, y, metric='eucl'):
+    """Objectif : trouver le meilleur threshold pour le candidat cand 
+
+    Args:
+        cand (array): shapelet candidat
+        X (liste de listes): observations
+        y (list): labels
+        metric (str, optional): distance à utiliser. Defaults to 'eucl'.
+
+    Returns:
+        best_information_gain, best_separation_gap, best_threshold: 
+    """
     sub_len = len(cand)
     distances = []
     
