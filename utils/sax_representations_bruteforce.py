@@ -1,3 +1,5 @@
+### This script computes the SAX representation for signals 
+
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import norm

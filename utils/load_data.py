@@ -1,3 +1,5 @@
+### This script aims to data from the ECGFiveDays dataset 
+
 from scipy.io import arff
 import pandas as pd
 

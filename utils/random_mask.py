@@ -1,4 +1,9 @@
+### This notebook aims to implement the part of random masking/projection 
+### It also computes the collision matrix and the distinguish power
+### And also the SAX_to_TS and the remaping from SAX_to_TS
+
 import numpy as np 
+
 
 def generate_random_masking(n, len_word):
     """
@@ -33,6 +38,7 @@ def apply_mask(word, mask):
 
 
 def compute_collision_matrix(nb_iterations, dict_sax):
+    " Compute the collision matrix for a given numer of iterations "
     # pour éviter de calculer des distances sur des doublons
     mots = sorted(set(word for words in dict_sax.values() for word in words))
     nb_mots = len(mots)
@@ -95,11 +101,13 @@ def compute_distinguish_power(nb_iterations, collision_matrix, y):
     return distinguish_power
 
 def find_top_k(distinguish_power,mots,k=10):
+    "Renvoie les top_k de la liste en fonction du distinguish power"
     indices_best = np.argsort(distinguish_power)[-k:][::-1]
     return [mots[i] for i in indices_best]
 
 
 def SAX_to_TS(filtered_sax_results, filtered_all_subsequences):
+    "Associe le résultat SAX à la sous-séquence correspondante"
     sax_to_ts = {}
     for i in range(len(filtered_sax_results)):
         for j in range(len(filtered_sax_results[i])):
@@ -111,15 +119,6 @@ def SAX_to_TS(filtered_sax_results, filtered_all_subsequences):
 
 
 def remap_SAX_to_TS(sax_words, sax_to_ts):
-    #return [cand for cand in sax_to_ts[word] for word in sax_words]
     return [ts for word in sax_words for ts in sax_to_ts[word]]
 
-
-
-# res = SAX_to_TS(filtered_sax_results, filtered_all_subsequences)
-# for key in res.keys():
-#     print(len(res[key]))
-
-# top_k = find_top_k(distinguish_power,mots,k=10)
-# len(remap_SAX_to_TS(top_k, res))
 

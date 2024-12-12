@@ -1,3 +1,7 @@
+### This script aims to compute shapelets with the bruteforce algorithm in O(n^2m^4)
+# where n is the number of time series in the dataset 
+# and m is the length of the longest time series in the dataset
+
 from tqdm import tqdm
 from utils.information_gain import eval_candidates
 from joblib import Parallel, delayed

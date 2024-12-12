@@ -1,3 +1,5 @@
+### This script aims to compute the information gain for each candidate, and also allows us to find the best shapelet for a given length
+
 import numpy as np
 from scipy.stats import entropy
 from fastdtw import fastdtw 
@@ -26,18 +28,9 @@ def min_dist(time_series, cand, metric):
     return np.min(distances)
 
 
-# def min_dist(time_series, cand, metric):
-#     sub_len = len(cand)
-#     subsequences = extract_subsequences(time_series, sub_len)
-#     dist = min(compute_distance(cand, sub, metric=metric) for sub in subsequences)
-#     return dist
-
-# def extract_subsequences(time_series, sub_len):
-#     "Découper des sous-séquences de taille len(cand) dans une série temporelle"
-#     return [time_series[i:i+sub_len] for i in range(len(time_series) - sub_len + 1)]
-
 def extract_subsequences(time_series, sub_len):
     """
+    Extrait toutes les sous-séquences de taille sub_len pour une time_series
     Vectorise l'extraction de sous-séquences à l'aide de numpy.
     """
     time_series = np.array(time_series)
@@ -56,7 +49,7 @@ def calculate_entropy(labels):
 
 
 def information_gain(cand, X, y, metric='eucl'):
-    """Objectif : trouver le meilleur threshold pour le candidat cand 
+    """Objectif : trouver le meilleur threshold pour le candidat cand
 
     Args:
         cand (array): shapelet candidat
@@ -65,7 +58,7 @@ def information_gain(cand, X, y, metric='eucl'):
         metric (str, optional): distance à utiliser. Defaults to 'eucl'.
 
     Returns:
-        best_information_gain, best_separation_gap, best_threshold: 
+        best_information_gain, best_separation_gap, best_threshold
     """
     sub_len = len(cand)
     distances = []
@@ -118,6 +111,7 @@ def information_gain(cand, X, y, metric='eucl'):
 
 
 def eval_candidates(top_k_TS, X, y, metric="eucl"):
+    "Parmi un ensemble de candidats, cette fonction renvoie celui avec le maximum information_gain_value"
     max_gain = 0 
     min_gap = 0
     shapelet = None
