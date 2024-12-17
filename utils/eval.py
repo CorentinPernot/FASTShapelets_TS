@@ -33,7 +33,7 @@ def create_dataframe(signals, shapelets, metric='eucl', n_jobs=-1):
     return df
 
 
-def create_decision_tree(df_train, y_train, df_test, y_test, max_depth=2):
+def create_decision_tree(df_train, y_train, df_test, y_test, max_depth=2, experiments=False):
     model = DecisionTreeClassifier(max_depth=max_depth, criterion="entropy")
     model.fit(df_train, y_train)
 
@@ -44,6 +44,9 @@ def create_decision_tree(df_train, y_train, df_test, y_test, max_depth=2):
     y_pred = model.predict(df_test)
     report = classification_report(y_test, y_pred, target_names=["Classe 1", "Classe 2"])
 
+    if experiments:
+        return model, report, test_accuracy
+    
     print(f"Accuracy sur le train : {train_accuracy:.4f}")
-    print(f"Accuracy sur le test : {test_accuracy:.4f}")    
+    print(f"Accuracy sur le test : {test_accuracy:.4f}") 
     return model, report
