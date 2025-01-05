@@ -1,33 +1,36 @@
 """Function to compute fast shapelets"""
 
 import numpy as np
-
 from joblib import Parallel, delayed
-
 from src.preprocessing import (
     load_data,
     z_normalize_2d,
     get_occ_per_class,
     get_series_per_class,
 )
-
 from src.sax import get_all_sax_representations
-
 from src.random_projection import compute_candidates
-
 from src.selection import select_best_candidate
 
 
 def compute_fast_shapelets(
     X_train: np.ndarray, y_train: np.ndarray, params: dict[str, float]
 ) -> dict:
+    """
+    Compute fast shapelets using random projection and SAX.
+
+    Args:
+        X_train (np.ndarray): The training data features.
+        y_train (np.ndarray): The training data labels.
+        params (dict[str, float]): The parameters for computing fast shapelets.
+
+    Returns:
+        dict: The parameters of the best candidate shapelet.
+    """
     X_train = z_normalize_2d(X=X_train)
     dict_occ_per_class = get_occ_per_class(y=y_train)
     dict_series_per_class = get_series_per_class(y=y_train)
-    params_best_candidate = {
-        "info_gain": 0.0,
-        "gap": 0.0,
-    }
+    params_best_candidate = {"info_gain": 0.0, "gap": 0.0}
     current_params = params.copy()
     for subsequence_length in range(X_train.shape[1]):
         current_params["subsequence_length"] = subsequence_length + 1
@@ -61,6 +64,21 @@ def function_to_parallelize(
     dict_series_per_class: dict,
     params: dict[str, int | float],
 ) -> dict:
+    """
+    Function to parallelize the computation of fast shapelets.
+
+    Args:
+        subsequence_length (int): The length of the subsequence.
+        X_train (np.ndarray): The training data features.
+        y_train (np.ndarray): The training data labels.
+        current_params (dict): The current parameters for computing fast shapelets.
+        dict_occ_per_class (dict): The occurrence per class.
+        dict_series_per_class (dict): The series per class.
+        params (dict[str, int | float]): The parameters for computing fast shapelets.
+
+    Returns:
+        dict: The parameters of the best candidate shapelet for the current subsequence length.
+    """
     current_params["subsequence_length"] = subsequence_length + 1
     current_params["dimensionality"] = params["dimensionality"]
     map_sax_representations, map_series, map_classes, map_subsequences = (
@@ -74,10 +92,7 @@ def function_to_parallelize(
         dict_occ_per_class=dict_occ_per_class,
         dict_series_per_class=dict_series_per_class,
     )
-    params_best_candidate = {
-        "info_gain": 0.0,
-        "gap": 0.0,
-    }
+    params_best_candidate = {"info_gain": 0.0, "gap": 0.0}
     params_best_candidate = select_best_candidate(
         array_candidates=candidates,
         X=X_train,
@@ -90,6 +105,17 @@ def function_to_parallelize(
 def compute_fast_shapelets_parallelized(
     X_train: np.ndarray, y_train: np.ndarray, params: dict[str, int | float]
 ) -> dict:
+    """
+    Compute fast shapelets using random projection and SAX in parallel.
+
+    Args:
+        X_train (np.ndarray): The training data features.
+        y_train (np.ndarray): The training data labels.
+        params (dict[str, int | float]): The parameters for computing fast shapelets.
+
+    Returns:
+        dict: The parameters of the best candidate shapelet.
+    """
     X_train = z_normalize_2d(X=X_train)
     dict_occ_per_class = get_occ_per_class(y=y_train)
     dict_series_per_class = get_series_per_class(y=y_train)

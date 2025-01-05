@@ -11,10 +11,30 @@ from src.preprocessing import (
 
 
 def euclidian_distance(series_1: np.ndarray, series_2: np.ndarray) -> float:
+    """
+    Compute the Euclidean distance between two series.
+
+    Args:
+        series_1 (np.ndarray): The first series.
+        series_2 (np.ndarray): The second series.
+
+    Returns:
+        float: The Euclidean distance between the two series.
+    """
     return float((1 / series_1.shape[0]) * np.linalg.norm(series_1 - series_2))
 
 
 def distance_to_series(target: np.ndarray, series: np.ndarray) -> float:
+    """
+    Compute the distance between a target series and a series.
+
+    Args:
+        target (np.ndarray): The target series.
+        series (np.ndarray): The series to compare with the target.
+
+    Returns:
+        float: The distance between the target series and the series.
+    """
     subsequences = extract_subsequences(
         series=series, subsequence_length=target.shape[0]
     )
@@ -25,6 +45,16 @@ def distance_to_series(target: np.ndarray, series: np.ndarray) -> float:
 
 
 def distance_to_all_series(target: np.ndarray, X: np.ndarray) -> np.ndarray:
+    """
+    Compute the distance between a target series and all series in a dataset.
+
+    Args:
+        target (np.ndarray): The target series.
+        X (np.ndarray): The dataset of series.
+
+    Returns:
+        np.ndarray: The distances between the target series and all series in the dataset.
+    """
     if len(X.shape) > 1:
         return np.array([distance_to_series(target, series) for series in X])
     else:
@@ -32,12 +62,31 @@ def distance_to_all_series(target: np.ndarray, X: np.ndarray) -> np.ndarray:
 
 
 def split(distances: np.ndarray, threshold: float) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Split the indices of distances based on a threshold.
+
+    Args:
+        distances (np.ndarray): The distances.
+        threshold (float): The threshold to split the indices.
+
+    Returns:
+        tuple: The indices of distances below the threshold and the indices of distances above the threshold.
+    """
     below_threshold_indices = distances < threshold
     above_threshold_indices = distances >= threshold
     return below_threshold_indices, above_threshold_indices
 
 
 def compute_entropy(dict_occ_by_class: dict[int, int]) -> float:
+    """
+    Compute the entropy of a dictionary of occurrences by class.
+
+    Args:
+        dict_occ_by_class (dict[int, int]): The dictionary of occurrences by class.
+
+    Returns:
+        float: The entropy of the dictionary.
+    """
     total_occurrences = sum(dict_occ_by_class.values())
     probabilities = [occ / total_occurrences for occ in dict_occ_by_class.values()]
     return -float(np.sum(probabilities * np.log2(probabilities)))
@@ -46,6 +95,17 @@ def compute_entropy(dict_occ_by_class: dict[int, int]) -> float:
 def compute_information_gain(
     y: np.ndarray, below_indices: np.ndarray, above_indices: np.ndarray
 ) -> float:
+    """
+    Compute the information gain of splitting a dataset based on a threshold.
+
+    Args:
+        y (np.ndarray): The target variable.
+        below_indices (np.ndarray): The indices of the dataset below the threshold.
+        above_indices (np.ndarray): The indices of the dataset above the threshold.
+
+    Returns:
+        float: The information gain of the split.
+    """
     y_below = y[below_indices]
     y_above = y[above_indices]
     n = y.shape[0]
@@ -62,6 +122,17 @@ def compute_information_gain(
 def function_to_minimize(
     threshold: float, distances: np.ndarray, y: np.ndarray
 ) -> float:
+    """
+    Function to minimize for finding the threshold that maximizes information gain.
+
+    Args:
+        threshold (float): The threshold to minimize.
+        distances (np.ndarray): The distances.
+        y (np.ndarray): The target variable.
+
+    Returns:
+        float: The negative information gain of the split.
+    """
     below_indices, above_indices = split(distances=distances, threshold=threshold)
     return -compute_information_gain(
         y=y, below_indices=below_indices, above_indices=above_indices
@@ -69,6 +140,16 @@ def function_to_minimize(
 
 
 def maximize_information_gain(distances: np.ndarray, y: np.ndarray) -> float:
+    """
+    Find the threshold that maximizes information gain.
+
+    Args:
+        distances (np.ndarray): The distances.
+        y (np.ndarray): The target variable.
+
+    Returns:
+        float: The threshold that maximizes information gain.
+    """
     bounds = (0, distances.max())
     result = minimize_scalar(
         function_to_minimize,
@@ -82,6 +163,17 @@ def maximize_information_gain(distances: np.ndarray, y: np.ndarray) -> float:
 def compute_gap(
     distances: np.ndarray, below_indices: np.ndarray, above_indices: np.ndarray
 ) -> float:
+    """
+    Compute the gap between the average distances of two sets of indices.
+
+    Args:
+        distances (np.ndarray): The distances.
+        below_indices (np.ndarray): The indices of the dataset below the threshold.
+        above_indices (np.ndarray): The indices of the dataset above the threshold.
+
+    Returns:
+        float: The gap between the average distances of the two sets.
+    """
     n_below = below_indices.shape[0]
     n_above = above_indices.shape[0]
     if n_below == 0 or n_above == 0:
@@ -97,6 +189,18 @@ def select_best_candidate(
     y: np.ndarray,
     params_best_candidate: dict[str, float],
 ) -> tuple[int, int | float | np.ndarray]:
+    """
+    Select the best candidate from an array of candidates based on maximizing information gain and minimizing gap.
+
+    Args:
+        array_candidates (np.ndarray): The array of candidates.
+        X (np.ndarray): The dataset of series.
+        y (np.ndarray): The target variable.
+        params_best_candidate (dict[str, float]): The parameters of the best candidate found so far.
+
+    Returns:
+        tuple: The index of the best candidate in the array, the best candidate, the threshold, and the information gain and gap.
+    """
     for i, candidate in enumerate(array_candidates):
         distances = distance_to_all_series(target=candidate, X=X)
         threshold = maximize_information_gain(distances=distances, y=y)
@@ -117,4 +221,10 @@ def select_best_candidate(
             params_best_candidate["gap"] = gap
             params_best_candidate["shapelet"] = candidate
             params_best_candidate["threshold"] = threshold
-    return params_best_candidate
+    return (
+        i,
+        params_best_candidate["shapelet"],
+        params_best_candidate["threshold"],
+        params_best_candidate["info_gain"],
+        params_best_candidate["gap"],
+    )
