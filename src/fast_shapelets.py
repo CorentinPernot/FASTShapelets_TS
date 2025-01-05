@@ -3,7 +3,7 @@
 import numpy as np
 from joblib import Parallel, delayed
 from src.preprocessing import (
-    load_data,
+    load_data_from_hf,
     z_normalize_2d,
     get_occ_per_class,
     get_series_per_class,
@@ -135,8 +135,8 @@ def compute_fast_shapelets_parallelized(
 
 
 if __name__ == "__main__":
-    X_train, y_train = load_data("TRAIN")
-    X_test, y_test = load_data("TEST")
+    X_train, y_train = load_data_from_hf("train")
+    X_test, y_test = load_data_from_hf("test")
     X_train = z_normalize_2d(X_train)
     X_test = z_normalize_2d(X_test)
     params = {"dimensionality": 16, "cardinality": 4, "r": 10, "k": 10, "proba": 0.8}

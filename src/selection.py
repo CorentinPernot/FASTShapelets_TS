@@ -221,10 +221,4 @@ def select_best_candidate(
             params_best_candidate["gap"] = gap
             params_best_candidate["shapelet"] = candidate
             params_best_candidate["threshold"] = threshold
-    return (
-        i,
-        params_best_candidate["shapelet"],
-        params_best_candidate["threshold"],
-        params_best_candidate["info_gain"],
-        params_best_candidate["gap"],
-    )
+    return params_best_candidate
