@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score
 
 from src.preprocessing import extract_subsequences, add_noise, z_normalize_2d
 
-from src.selection import euclidian_distance, distance_to_all_series, split
+from src.selection import euclidean_distance, distance_to_all_series, split
 
 from src.fast_shapelets import (
     compute_fast_shapelets_parallelized,
@@ -34,7 +34,7 @@ def find_shapelet_position(
     )
     distances = np.array(
         [
-            euclidian_distance(shapelet_params["shapelet"], subsequence)
+            euclidean_distance(shapelet_params["shapelet"], subsequence)
             for subsequence in subsequences
         ]
     )

@@ -30,6 +30,9 @@ def compute_fast_shapelets(
     X_train = z_normalize_2d(X=X_train)
     dict_occ_per_class = get_occ_per_class(y=y_train)
     dict_series_per_class = get_series_per_class(y=y_train)
+    distance_method = (
+        params["distance_method"] if "distance_method" in params else "euclidean"
+    )
     params_best_candidate = {"info_gain": 0.0, "gap": 0.0}
     current_params = params.copy()
     for subsequence_length in range(X_train.shape[1]):
@@ -45,6 +48,7 @@ def compute_fast_shapelets(
             map_subsequences=map_subsequences,
             dict_occ_per_class=dict_occ_per_class,
             dict_series_per_class=dict_series_per_class,
+            distance_method=distance_method,
         )
         params_best_candidate = select_best_candidate(
             array_candidates=candidates,
@@ -63,6 +67,7 @@ def function_to_parallelize(
     dict_occ_per_class: dict,
     dict_series_per_class: dict,
     params: dict[str, int | float],
+    distance_method: str = "euclidean",
 ) -> dict:
     """
     Function to parallelize the computation of fast shapelets.
@@ -75,6 +80,7 @@ def function_to_parallelize(
         dict_occ_per_class (dict): The occurrence per class.
         dict_series_per_class (dict): The series per class.
         params (dict[str, int | float]): The parameters for computing fast shapelets.
+        distance_method (str | Optional): The distance method to use for computing distances. Defaults to "euclidean".
 
     Returns:
         dict: The parameters of the best candidate shapelet for the current subsequence length.
@@ -98,6 +104,7 @@ def function_to_parallelize(
         X=X_train,
         y=y_train,
         params_best_candidate=params_best_candidate,
+        distance_method=distance_method,
     )
     return params_best_candidate
 
@@ -119,6 +126,9 @@ def compute_fast_shapelets_parallelized(
     X_train = z_normalize_2d(X=X_train)
     dict_occ_per_class = get_occ_per_class(y=y_train)
     dict_series_per_class = get_series_per_class(y=y_train)
+    distance_method = (
+        params["distance_method"] if "distance_method" in params else "euclidean"
+    )
     results = Parallel(n_jobs=-1)(
         delayed(function_to_parallelize)(
             subsequence_length=subsequence_length,
@@ -128,6 +138,7 @@ def compute_fast_shapelets_parallelized(
             dict_occ_per_class=dict_occ_per_class,
             dict_series_per_class=dict_series_per_class,
             params=params,
+            distance_method=distance_method,
         )
         for subsequence_length in range(X_train.shape[1])
     )

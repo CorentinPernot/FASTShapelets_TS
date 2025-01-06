@@ -208,35 +208,35 @@ def compute_candidates(
     Returns:
         np.ndarray: A 2D numpy array representing the subsequences of the top k candidates.
     """
-    mask = generate_random_mask(
-        dimensionality=params["dimensionality"], proba=params["proba"]
-    )
     array_sax_representations = all_sax_representations_to_array(
         map_sax_representations=map_sax_representations
     )
-    projection = generate_random_projection(
-        array_sax_representations=array_sax_representations, mask=mask
-    )
     collision_table = create_collision_tables(
         map_sax_representations=map_sax_representations, map_series=map_series
-    )
+    )  # init table
     for _ in range(params["r"]):
+        mask = generate_random_mask(
+            dimensionality=params["dimensionality"], proba=params["proba"]
+        )  # Random mask
+        projection = generate_random_projection(
+            array_sax_representations=array_sax_representations, mask=mask
+        )  # Random projection
         collision_table = update_collision_table(
             collision_table=collision_table,
             projection=projection,
             map_series=map_series,
-        )
+        )  # Iterations
     array_occ_by_class = get_array_occ_by_class(dict_occ_by_class=dict_occ_per_class)
     close_table = transpose_collision_table_to_classes(
         collision_table=collision_table, dict_series_per_class=dict_series_per_class
-    )
+    )  # Collisions by class
     distinguish_power = compute_distinguish_power(
         close_table=close_table, r=params["r"], array_occ_by_class=array_occ_by_class
     )
     candidates_indexes = get_top_k_candidates_indexes(
         distinguish_power=distinguish_power, k=params["k"]
-    )
+    )  # Find best k candidates
     candidates = get_candidates_subsequences(
         candidates_indexes=candidates_indexes, map_subsequences=map_subsequences
-    )
+    )  # Candidates signals
     return candidates

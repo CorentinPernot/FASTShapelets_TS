@@ -1,8 +1,8 @@
 """Functions to select the best candidate"""
 
 import numpy as np
+from fastdtw import fastdtw
 from scipy.optimize import minimize_scalar
-
 
 from src.preprocessing import (
     extract_subsequences,
@@ -10,7 +10,7 @@ from src.preprocessing import (
 )
 
 
-def euclidian_distance(series_1: np.ndarray, series_2: np.ndarray) -> float:
+def euclidean_distance(series_1: np.ndarray, series_2: np.ndarray) -> float:
     """
     Compute the Euclidean distance between two series.
 
@@ -24,13 +24,31 @@ def euclidian_distance(series_1: np.ndarray, series_2: np.ndarray) -> float:
     return float((1 / series_1.shape[0]) * np.linalg.norm(series_1 - series_2))
 
 
-def distance_to_series(target: np.ndarray, series: np.ndarray) -> float:
+def dtw_distance(series_1: np.ndarray, series_2: np.ndarray) -> float:
+    """
+    Compute the DTW distance between two series.
+
+    Args:
+        series_1 (np.ndarray): The first series.
+        series_2 (np.ndarray): The second series.
+
+    Returns:
+        float: The DTW distance between the two series.
+    """
+    distance, _ = fastdtw(series_1, series_2, dist=2)
+    return float(distance)
+
+
+def distance_to_series(
+    target: np.ndarray, series: np.ndarray, distance_method: str = "euclidean"
+) -> float:
     """
     Compute the distance between a target series and a series.
 
     Args:
         target (np.ndarray): The target series.
         series (np.ndarray): The series to compare with the target.
+        distance_method (str, optional): The method to compute the distance. Defaults to "euclidean".
 
     Returns:
         float: The distance between the target series and the series.
@@ -38,27 +56,50 @@ def distance_to_series(target: np.ndarray, series: np.ndarray) -> float:
     subsequences = extract_subsequences(
         series=series, subsequence_length=target.shape[0]
     )
-    distances = np.array(
-        [euclidian_distance(target, subsequence) for subsequence in subsequences]
-    )
+    if distance_method == "euclidean":
+        distances = np.array(
+            [euclidean_distance(target, subsequence) for subsequence in subsequences]
+        )
+    elif distance_method == "dtw":
+        distances = np.array(
+            [dtw_distance(target, subsequence) for subsequence in subsequences]
+        )
+    else:
+        raise ValueError("Invalid distance method. Choose either 'euclidean' or 'dtw'.")
     return float(np.min(distances))
 
 
-def distance_to_all_series(target: np.ndarray, X: np.ndarray) -> np.ndarray:
+def distance_to_all_series(
+    target: np.ndarray, X: np.ndarray, distance_method: str = "euclidean"
+) -> np.ndarray:
     """
     Compute the distance between a target series and all series in a dataset.
 
     Args:
         target (np.ndarray): The target series.
         X (np.ndarray): The dataset of series.
+        distance_method (str, optional): The method to compute the distance. Defaults to "euclidean".
 
     Returns:
         np.ndarray: The distances between the target series and all series in the dataset.
     """
     if len(X.shape) > 1:
-        return np.array([distance_to_series(target, series) for series in X])
+        return np.array(
+            [
+                distance_to_series(
+                    target=target, series=series, distance_method=distance_method
+                )
+                for series in X
+            ]
+        )
     else:
-        return np.array([distance_to_series(target, X)])
+        return np.array(
+            [
+                distance_to_series(
+                    target=target, series=X, distance_method=distance_method
+                )
+            ]
+        )
 
 
 def split(distances: np.ndarray, threshold: float) -> tuple[np.ndarray, np.ndarray]:
@@ -188,6 +229,7 @@ def select_best_candidate(
     X: np.ndarray,
     y: np.ndarray,
     params_best_candidate: dict[str, float],
+    distance_method: str = "euclidean",
 ) -> tuple[int, int | float | np.ndarray]:
     """
     Select the best candidate from an array of candidates based on maximizing information gain and minimizing gap.
@@ -197,12 +239,15 @@ def select_best_candidate(
         X (np.ndarray): The dataset of series.
         y (np.ndarray): The target variable.
         params_best_candidate (dict[str, float]): The parameters of the best candidate found so far.
+        distance_method (str, optional): The method to compute the distance. Defaults to "euclidean".
 
     Returns:
         tuple: The index of the best candidate in the array, the best candidate, the threshold, and the information gain and gap.
     """
     for i, candidate in enumerate(array_candidates):
-        distances = distance_to_all_series(target=candidate, X=X)
+        distances = distance_to_all_series(
+            target=candidate, X=X, distance_method=distance_method
+        )
         threshold = maximize_information_gain(distances=distances, y=y)
         below_indices, above_indices = split(distances=distances, threshold=threshold)
         info_gain = compute_information_gain(
