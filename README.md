@@ -1,4 +1,4 @@
-# FASTShapelets_TS
+# Fast-Shapelets
 
 MVA 2024/2025 — Mini-project for *Machine Learning for Time Series*
 
